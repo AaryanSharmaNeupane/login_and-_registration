@@ -1,11 +1,24 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
+import 'package:yatra/screens/otp_verification_screen.dart';
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+  static const routeName = '/login-page';
+  static String verify = "";
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController phoneNumber = TextEditingController();
+  var countryCode = "+977";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       body: Container(
         margin: const EdgeInsets.only(left: 25, right: 25),
         alignment: Alignment.center,
@@ -57,7 +70,7 @@ class LoginScreen extends StatelessWidget {
                       width: 50,
                       child: Row(
                         children: [
-                          const Text("+977"),
+                          Text(countryCode),
                           const SizedBox(
                             width: 3,
                           ),
@@ -77,7 +90,9 @@ class LoginScreen extends StatelessWidget {
                     ),
                     Expanded(
                       child: TextField(
-                        decoration: InputDecoration(
+                        controller: phoneNumber,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: "Phone Number",
                         ),
@@ -93,7 +108,20 @@ class LoginScreen extends StatelessWidget {
                 height: 45,
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    await FirebaseAuth.instance.verifyPhoneNumber(
+                      phoneNumber: countryCode + phoneNumber.text,
+                      verificationCompleted:
+                          (PhoneAuthCredential credential) {},
+                      verificationFailed: (FirebaseAuthException e) {},
+                      codeSent: (String verificationId, int? resendToken) {
+                        LoginScreen.verify = verificationId;
+                        Navigator.of(context)
+                            .pushNamed(OtpVerificationScreen.routeName);
+                      },
+                      codeAutoRetrievalTimeout: (String verificationId) {},
+                    );
+                  },
                   child: const Text('Send the OTP'),
                 ),
               ),
