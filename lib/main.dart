@@ -35,11 +35,12 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      initialRoute: LoginScreen.routeName,
+      //initialRoute: LoginScreen.routeName,
       routes: {
-        LoginScreen.routeName: (context) => const LoginScreen(),
+        // LoginScreen.routeName: (context) => const LoginScreen(),
         OtpVerificationScreen.routeName: (context) => OtpVerificationScreen(),
         HomeScreen.routeName: (context) => const HomeScreen(),
+        "/": (context) => OtpVerificationScreen(),
       },
     );
   }

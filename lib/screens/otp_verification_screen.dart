@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:pinput/pinput.dart';
 import 'package:yatra/screens/home_screen.dart';
 
@@ -9,6 +10,32 @@ import 'package:yatra/screens/login_screen.dart';
 class OtpVerificationScreen extends StatelessWidget {
   static const routeName = '/Otp-verification-screen';
   var code = "";
+
+  /// Determine the current position of the device..
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
 
   final defaultPinTheme = PinTheme(
     width: 56,
@@ -98,16 +125,19 @@ class OtpVerificationScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () async {
                     try {
-                      PhoneAuthCredential credential =
-                          PhoneAuthProvider.credential(
-                              verificationId: LoginScreen.verify,
-                              smsCode: code);
+                      // PhoneAuthCredential credential =
+                      //     PhoneAuthProvider.credential(
+                      //         verificationId: LoginScreen.verify,
+                      //         smsCode: code);
 
                       // Sign the user in (or link) with the credential
-                      await auth.signInWithCredential(credential);
 
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          HomeScreen.routeName, (route) => false);
+                      //  await auth.signInWithCredential(credential);
+                      //for current location
+                      Position position = await _determinePosition();
+
+                      Navigator.of(context)
+                          .pushNamed(HomeScreen.routeName, arguments: position);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         duration: Duration(seconds: 4),
